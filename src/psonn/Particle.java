@@ -41,8 +41,15 @@ public class Particle implements Serializable
     
     public Particle(final Particle other)
     {
-        this.values = Arrays.copyOf(other.values, other.values.length);
-        this.velocity = Arrays.copyOf(other.velocity, other.velocity.length);
+        values = new double[other.values.length];
+        velocity = new double[other.velocity.length];
+        copyFrom(other);
+    }
+    
+    public final void copyFrom(final Particle other)
+    {
+        System.arraycopy(other.values, 0, this.values, 0, values.length);
+        System.arraycopy(other.velocity, 0, this.velocity, 0, velocity.length);
         this.fitness = other.fitness;
     }
     

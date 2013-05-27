@@ -27,7 +27,7 @@ public class NNEval extends EvaluationFunc
     @Override
     public double evaluate(Board b, int player)
     {
-        return nn.run(b.getInputs())[0];
+        return nn.run(b.getInputs(player))[0];
     }
     
 }

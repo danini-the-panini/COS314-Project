@@ -13,6 +13,8 @@ import java.util.concurrent.Future;
  */
 public class GameMaster
 {
+    private static Game DRAW = new Game(-1,-1);
+    
     public static final double WIN_REWARD = 1.0;
     public static final double LOSS_PUNISHMENT = 2.0;
     private Random random = new Random();
@@ -53,6 +55,7 @@ public class GameMaster
         games = new ArrayDeque<Future<Game>>();
         
         executor =
+                
         // Toggle between following lines to switch between single-threading
         // and multi-threading
                 
@@ -86,10 +89,10 @@ public class GameMaster
             {
                 Game game = games.remove().get();
 
-                if (game.result != 2)
+                if (game != DRAW)
                 {
-                    results[game.result] += WIN_REWARD;
-                    results[1-game.result] -= LOSS_PUNISHMENT;
+                    results[game.winner] += WIN_REWARD;
+                    results[game.loser] -= LOSS_PUNISHMENT;
                 }
             }
             catch (Exception e)
@@ -99,16 +102,15 @@ public class GameMaster
         }
     }
     
-    private class Game
+    private static class Game
     {
-        int p1, p2;
-        int result;
+        int winner;
+        int loser;
 
-        public Game(int p1, int p2, int result)
+        public Game(int winner, int loser)
         {
-            this.p1 = p1;
-            this.p2 = p2;
-            this.result = result;
+            this.winner = winner;
+            this.loser = loser;
         }
     }
     
@@ -139,7 +141,8 @@ public class GameMaster
                 board.applyMove(players[me].move(board, me));
             }
 
-            return new Game(pid[0],pid[1],status);
+            if (status == 2) return DRAW;
+            return new Game(pid[status],pid[1-status]);
         }
     }
     

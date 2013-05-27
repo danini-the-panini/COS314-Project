@@ -81,15 +81,25 @@ public class TTTBoard extends Board
     public static double[][] enc = {{0,1},{1,0},{0,0}};
     
     @Override
-    public double[] getInputs()
+    public double[] getInputs(int forwhom)
     {
         double[] inputs = new double[getNumInputs()];
+        int v;
         for (int i = 0; i < board.length; i++)
         {
-            inputs[i*2] = enc[board[i]][0];
-            inputs[i*2+1] = enc[board[i]][1];
+            v = getValue(i,forwhom);
+            inputs[i*2] = enc[v][0];
+            inputs[i*2+1] = enc[v][1];
         }
         return inputs;
+    }
+    
+    private int getValue(int i, int forwhom)
+    {
+        int value = board[i];
+        if (forwhom == 1)
+            if (value != 2) value = 1-value;
+        return value;
     }
 
     @Override

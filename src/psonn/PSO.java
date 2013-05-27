@@ -46,7 +46,7 @@ public abstract class PSO
         {
             if (particles[i].getFitness() > pbest[i].getFitness())
             {
-                pbest[i] = new Particle(particles[i]);
+                pbest[i].copyFrom(particles[i]);
             }
         }
     }
@@ -85,7 +85,7 @@ public abstract class PSO
             pbest[i] = new Particle(particles[i]);
         }
         
-        topology.setPopulation(particles);
+        this.topology.setPopulation(pbest);
     }
     
     public PSO(int maxIterations, Topology topology, double w,
@@ -105,7 +105,7 @@ public abstract class PSO
         System.arraycopy(population, 0, particles, 0, numParticles);
         System.arraycopy(population, numParticles, pbest, 0, numParticles);
         
-        topology.setPopulation(particles);
+        this.topology.setPopulation(pbest);
     }
  
     /**
@@ -116,9 +116,11 @@ public abstract class PSO
         
         // first run to get the initial fitness
         updateFitness();
+        updatePersonalBest();
+        topology.update();
         
         // commence particle swarm optimisation!
-        for (int i = 1; i <= maxIterations; i++)
+        for (int i = 0; i < maxIterations; i++)
         {
             // update each particle's position
             for (int j = 0; j < numParticles; j++)
@@ -129,7 +131,6 @@ public abstract class PSO
             
             updateFitness();
             updatePersonalBest();
-            
             topology.update();
             
             serializePopulation("./pop/"+System.currentTimeMillis()+".pop");
@@ -144,17 +145,7 @@ public abstract class PSO
             writer.flush();
     }
     
-    public Particle getBestBest()
-    {
-        return getBestParticle(particles);
-    }
-    
-    public Particle getCurrentBest()
-    {
-        return getBestParticle(pbest);
-    }
-    
-    public static Particle getBestParticle(Particle[] list)
+    public static Particle getBest(Particle[] list)
     {
         int best = 0;
         for (int i = 0; i < list.length; i++)

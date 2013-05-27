@@ -74,7 +74,7 @@ public class GameNNPSO extends PSO
         
         gameMaster = new GameMaster(players, board, NUM_GAMES);
         
-        Particle p = getBestBest();
+        Particle p = getBest(pbest);
         
         double fit = p.getFitness();
         double[] values = p.getValues();
@@ -109,8 +109,8 @@ public class GameNNPSO extends PSO
     @Override
     protected boolean intermediate(int iteration)
     {
-        Particle cbest = getCurrentBest();
-        Particle gbest = getBestBest();
+        Particle cbest = getBest(particles);
+        Particle gbest = getBest(pbest);
         
         System.out.printf("%d: cbest=%g, gbest=%g",iteration,cbest.getFitness(),
                 gbest.getFitness());
@@ -124,7 +124,7 @@ public class GameNNPSO extends PSO
     {
         gameMaster.shutDown();
         
-        Particle gbest = getBestBest();
+        Particle gbest = getBest(pbest);
         double[] values = gbest.getValues();
         double fitness = gbest.getFitness();
         

@@ -36,7 +36,7 @@ public abstract class Board
     
     public abstract int getNumInputs();
     
-    public abstract double[] getInputs();
+    public abstract double[] getInputs(int forWhom);
 
     public void setBoard(int[] board)
     {

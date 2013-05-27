@@ -10,10 +10,10 @@ import java.util.ArrayList;
  */
 public class MancalaBoard extends Board
 {
-    public static final int BL = 14;
-    public static final int HB = 7;
+    public static final int FULL = 14;
+    public static final int HALF = 7;
     public static final int M = 6;
-    public static final int M1 = M+HB;
+    public static final int M1 = M+HALF;
     public static final int DRAW = 2;
     
     private int winner = -1;
@@ -25,17 +25,17 @@ public class MancalaBoard extends Board
 
     public MancalaBoard()
     {
-        super(BL);
+        super(FULL);
         for (int i = 0; i < M; i++)
         {
-            board[i] = board[i+HB] = 4;
+            board[i] = board[i+HALF] = 4;
         }
     }
 
     @Override
     public int[][] getMoves()
     {
-        int o = currentPlayer*HB; // player offset
+        int o = currentPlayer*HALF; // player offset
         int mancala = M+o; // player's mancala
         
         ArrayList<int[]> moves = new ArrayList<int[]>();
@@ -64,7 +64,7 @@ public class MancalaBoard extends Board
                 //  Figure 1:   Board indices.
                 //              Mancala's are 6 and 13
                 
-                if (i + board[pit]%(BL-1) == M)
+                if (i + board[pit]%(FULL-1) == M)
                 {
                     // case when player can go again
                     // recursively get more moves
@@ -134,14 +134,14 @@ public class MancalaBoard extends Board
     // tells whether or not the given pit belongs to currentPlayer
     private boolean yours(int pit)
     {
-        pit -= currentPlayer*HB;
-        return pit >= 0 && pit < HB;
+        pit -= currentPlayer*HALF;
+        return pit >= 0 && pit < HALF;
     }
     
     // apply a single move. i.e. perform the act of sowing from one pit
     public boolean applyHalfMove(int pit)
     {
-        int o = currentPlayer*HB; // player offset
+        int o = currentPlayer*HALF; // player offset
         int mancala = M+o; // player's mancala
         int otherMancala = opposite(mancala); // opponent's mancala
         int finish = pit+board[pit]; // finishing point
@@ -156,14 +156,14 @@ public class MancalaBoard extends Board
         // sow seeds
         for (int i = pit+1; i <= finish; i++)
         {
-            if (i%BL != otherMancala) // skip opponent's mancala
-                board[i%BL]++;
+            if (i%FULL != otherMancala) // skip opponent's mancala
+                board[i%FULL]++;
             else
                 finish++; // if skipped, move finish point along
         }
         //System.out.print(" x");
         
-        finish %= BL; // wrap finish point within bounds
+        finish %= FULL; // wrap finish point within bounds
         
         // next player if move did not finish in player's mancala
         if (finish != mancala)
@@ -194,7 +194,7 @@ public class MancalaBoard extends Board
         for (int i = 0; i < M; i++)
         {
             a += board[i];
-            b += board[i+HB];
+            b += board[i+HALF];
         }
         if (a == 0 || b == 0)
         {
@@ -246,11 +246,11 @@ public class MancalaBoard extends Board
     }
 
     @Override
-    public double[] getInputs()
+    public double[] getInputs(int forwhom)
     {
         double[] inputs = new double[board.length];
         for (int i = 0; i < board.length; i++)
-            inputs[i] = (double)board[i];
+            inputs[i] = (double)board[(i+forwhom*HALF)%FULL];
         return inputs;
     }
     

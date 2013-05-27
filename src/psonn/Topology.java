@@ -27,7 +27,7 @@ public abstract class Topology
             best = 0;
             for (int i = 1; i < population.length; i++)
             {
-                if (population[i].getFitness() < population[best].getFitness())
+                if (population[i].getFitness() > population[best].getFitness())
                 {
                     best = i;
                 }
@@ -73,12 +73,12 @@ public abstract class Topology
                 for (int j = 1; j <= neighbourhood; j++)
                 {
                     int k = wrap(i-j);
-                    if (population[k].getFitness() < population[best[i]].getFitness())
+                    if (population[k].getFitness() > population[best[i]].getFitness())
                     {
                         best[i] = k;
                     }
                     k = wrap(i+j);
-                    if (population[k].getFitness() < population[best[i]].getFitness())
+                    if (population[k].getFitness() > population[best[i]].getFitness())
                     {
                         best[i] = k;
                     }
