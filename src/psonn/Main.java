@@ -21,7 +21,7 @@ public class Main
     public static final double C2 = 1.4;
     public static final int LOWER_BOUND = -1;
     public static final int NUM_HIDDEN_UNITS = 3;
-    public static final int NUM_ITERATIONS = 20000;
+    public static final int NUM_ITERATIONS = 1000;
     public static final int NUM_PARTICLES = 30;
     public static final int UPPER_BOUND = 1;
     public static final int VMAX = 5;

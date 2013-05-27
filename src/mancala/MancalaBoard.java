@@ -18,7 +18,7 @@ public class MancalaBoard extends Board
     
     private int winner = -1;
     
-    private int opposite[] = new int[]
+    private static final int OPP[] = new int[]
     {
         12, 11, 10, 9, 8, 7, 13, 5, 4, 3, 2, 1, 0, 6
     };
@@ -45,13 +45,36 @@ public class MancalaBoard extends Board
             if (board[pit] > 0)
             {
                 
-                if (pit + board[pit] == mancala)
+                // start with i (which between 0 and 5) and add the number of
+                // seeds in the current pit,  mod by board length -1, then check
+                // if it were to land in the mancala .
+                // This only needs player offset to get the value, everything
+                // else is done relative to player one.
+                
+                // Figure 1 shows the indices of the board. Check for yourself
+                // an example, such as sowing 17 seeds from index 2 will finish
+                // in position 6.
+                
+                // +--+  +--+--+--+--+--+--+  +--+
+                // |13|  |12|11|10| 9| 8| 7|  |  |
+                // |  |  +--+--+--+--+--+--+  |  |
+                // |  |  | 0| 1| 2| 3| 4| 5|  |6 |
+                // +--+  +--+--+--+--+--+--+  +--+
+                //
+                //  Figure 1:   Board indices.
+                //              Mancala's are 6 and 13
+                
+                if (i + board[pit]%(BL-1) == M)
                 {
                     // case when player can go again
                     // recursively get more moves
                     
                     MancalaBoard b = (MancalaBoard)this.sheep(); // copy board
                     b.applyHalfMove(pit); // apply move to copied board
+                    if (b.currentPlayer != this.currentPlayer)
+                    {
+                        System.err.println(">.<");
+                    }
                     b.gameCheck(); // check if move did not cause a win
                     if (b.winner == -1)
                     {
@@ -67,9 +90,25 @@ public class MancalaBoard extends Board
                             moves.add(m2);
                         }
                     }
+                    else // anchor case when turn causes a win
+                    {
+                        moves.add(new int[]{pit});
+                    }
                 }
                 else
                 {
+                    MancalaBoard b = (MancalaBoard)this.sheep(); // copy board
+                    b.applyHalfMove(pit); // apply move to copied board
+                    if (b.currentPlayer == this.currentPlayer)
+                    {
+                        //System.err.println("D:<");
+                        System.out.println("<<<<<<<<<<");
+                        this.print(System.out);
+                        System.out.println("==========");
+                        b.print(System.out);
+                        System.out.println(">>>>>>>>>>");
+                    }
+                    
                     // anchor case where only one move can be made
                     
                     moves.add(new int[]{pit});
@@ -77,7 +116,11 @@ public class MancalaBoard extends Board
             }
         }
         
-        //if (moves.isEmpty()) return null;
+        if (moves.isEmpty() && winner == -1)
+        {
+            System.err.println("We have a problem...");
+            print(System.out);
+        }
         
         return moves.toArray(new int[0][]);
     }
@@ -85,7 +128,7 @@ public class MancalaBoard extends Board
     // get the opposite pit
     private int opposite(int pit)
     {
-        return opposite[pit];
+        return OPP[pit];
     }
     
     // tells whether or not the given pit belongs to currentPlayer
@@ -96,7 +139,7 @@ public class MancalaBoard extends Board
     }
     
     // apply a single move. i.e. perform the act of sowing from one pit
-    public void applyHalfMove(int pit)
+    public boolean applyHalfMove(int pit)
     {
         int o = currentPlayer*HB; // player offset
         int mancala = M+o; // player's mancala
@@ -105,7 +148,7 @@ public class MancalaBoard extends Board
         
         // invalid move check
         if (!yours(pit) || pit == mancala || board[pit] == 0)
-            return;
+            return false;
         
         // take seeds
         board[pit] = 0;
@@ -113,7 +156,7 @@ public class MancalaBoard extends Board
         // sow seeds
         for (int i = pit+1; i <= finish; i++)
         {
-            if (i != otherMancala) // skip opponent's mancala
+            if (i%BL != otherMancala) // skip opponent's mancala
                 board[i%BL]++;
             else
                 finish++; // if skipped, move finish point along
@@ -141,13 +184,14 @@ public class MancalaBoard extends Board
             nextPlayer();
         }
         
+        return true;
     }
     
     // check if there is a winner
     public void gameCheck()
     {
         int a = 0, b = 0;
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < M; i++)
         {
             a += board[i];
             b += board[i+HB];
@@ -166,13 +210,15 @@ public class MancalaBoard extends Board
     }
 
     @Override
-    public void applyMove(int[] move)
+    public boolean applyMove(int[] move)
     {
         for (int i = 0; i < move.length; i++)
         {
-            applyHalfMove(move[i]);
+            if (!applyHalfMove(move[i]))
+                return false;
         }
         gameCheck();
+        return true;
     }
 
     @Override
@@ -181,8 +227,8 @@ public class MancalaBoard extends Board
         MancalaBoard nboard = new MancalaBoard();
         
         nboard.setBoard(this.board);
-        if (nboard.getCurrentPlayer() != this.getCurrentPlayer())
-            nboard.nextPlayer();
+        nboard.currentPlayer = this.currentPlayer;
+        nboard.winner = this.winner;
         
         return nboard;
     }
@@ -211,18 +257,22 @@ public class MancalaBoard extends Board
     @Override
     public void print(PrintStream out)
     {
-        out.println("   +--+--+--+--+--+--+");
-        out.printf("%2d ", board[M1]);
+        out.println("             PLAYER 1");
+        out.println("       12 11 10  9  8  7");
+        out.println("+--+  +--+--+--+--+--+--+  +--+");
+        out.printf( "|%2d|  ", board[M1]);
         for (int i = M1-1; i > M; i--)
             System.out.printf("|%2d",board[i]);
-        out.println("|");
-        out.println("   +--+--+--+--+--+--+");
-        out.print("   ");
+        out.println("|  |  |");
+        out.println("|  |  +--+--+--+--+--+--+  |  |");
+        out.print("|  |  ");
         for (int i = 0; i < M; i++)
             System.out.printf("|%2d",board[i]);
-        out.printf("| %2d", board[M]);
+        out.printf("|  |%2d|", board[M]);
         out.println();
-        out.println("   +--+--+--+--+--+--+");
+        out.println("+--+  +--+--+--+--+--+--+  +--+");
+        out.println("        0  1  2  3  4  5");
+        out.println("            PLAYER 0");
     }
     
 }

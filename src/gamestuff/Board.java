@@ -27,7 +27,7 @@ public abstract class Board
     
     public abstract int[][] getMoves();
     
-    public abstract void applyMove(int[] move);
+    public abstract boolean applyMove(int[] move);
 
     public int[] getBoard()
     {

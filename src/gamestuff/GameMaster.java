@@ -51,6 +51,9 @@ public class GameMaster
         games = new ArrayDeque<Future<Game>>();
         
         executor =
+        // Toggle between following lines to switch between single-threading
+        // and multi-threading
+                
         Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         //Executors.newSingleThreadExecutor();
     }

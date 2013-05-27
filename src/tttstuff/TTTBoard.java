@@ -47,13 +47,14 @@ public class TTTBoard extends Board
     }
 
     @Override
-    public void applyMove(int[] move)
+    public boolean applyMove(int[] move)
     {
         int m = move[0];
-        if (board[m] != E) return; // invalid move...
+        if (board[m] != E) return false; // invalid move...
         board[m] = currentPlayer;
         numMoves--;
         nextPlayer();
+        return true;
     }
 
     @Override
