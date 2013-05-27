@@ -10,9 +10,8 @@ public class ABPlayer extends Player
     
     private int maxDepth;
 
-    public ABPlayer(int maxDepth, String name, EvaluationFunc eval)
+    public ABPlayer(int maxDepth, EvaluationFunc eval)
     {
-        super(name);
         
         this.maxDepth = maxDepth;
         abtree = new AlphaBetaTree(eval);

@@ -14,12 +14,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class Player
 {
-    private String name;
-
-    public Player(String name)
-    {
-        this.name = name;
-    }
     
     public abstract int[] move(Board board, int playerNum);
     
@@ -42,7 +36,7 @@ public abstract class Player
             OutputStream out = socket.getOutputStream();
 
             //Write name
-            out.write((player.name+"\n").getBytes());
+            out.write(("Blind, Deaf Monkey\n").getBytes());
             TTTBoard b = new TTTBoard();
             int[] board = new int[9];
             for (int k = 0; k < 9; k++)

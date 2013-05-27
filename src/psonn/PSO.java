@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -20,8 +21,8 @@ import java.util.ArrayList;
  */
 public abstract class PSO
 {
-    private int maxIterations;
-    protected Particle[] particles;
+    protected int maxIterations, numParticles;
+    protected Particle[] particles, pbest; // parallel arrays
     private double vmax;
     
     private double w, c1, c2; // weight, cognitive and social coefficients.
@@ -30,32 +31,24 @@ public abstract class PSO
     
     protected PrintWriter writer = null;
     
-    /**
-     * Gets the fitness of a particular vector.
-     * @param pid The particle ID this is getting the fitness for.
-     * @param v The vector to calculate the fitness of.
-     * @return The fitness of the vector.
-     */
-    protected abstract double getFitness(int pid, double[] values);
-    
-    // gets called for each particle after particle update
-    protected abstract void particleUpdate();
+    // gets called to update particle fitnesses
+    protected abstract void updateFitness();
     
     // gets called after getting fitness. Can prematurely stop PSO.
     protected abstract boolean intermediate(int iteration);
     
     // called after PSO is complete. values is the global best particle ever.
-    protected abstract void finalise(double[] values, double fitness);
+    protected abstract void finalise();
     
-    // update each particle's fitness using the overridden getFitness function.
-    private void updateFitness()
+    protected void updatePersonalBest()
     {
-        for (int j = 0; j < particles.length; j++)
+        for (int i = 0; i < numParticles; i++)
         {
-            double fitness = getFitness(j, particles[j].getValues());
-            particles[j].updateFitness(fitness);
+            if (particles[i].getFitness() > pbest[i].getFitness())
+            {
+                pbest[i] = new Particle(particles[i]);
+            }
         }
-        topology.update();
     }
 
     /**
@@ -81,12 +74,15 @@ public abstract class PSO
         this.c2 = c2;
         this.vmax = vmax;
         this.maxIterations = maxIterations;
+        this.numParticles = numParticles;
         
         particles = new Particle[numParticles];
+        pbest = new Particle[numParticles];
         
         for (int i = 0; i < particles.length; i++)
         {
             particles[i] = new Particle(dimensions, lowerBound, upperBound);
+            pbest[i] = new Particle(particles[i]);
         }
         
         topology.setPopulation(particles);
@@ -101,8 +97,13 @@ public abstract class PSO
         this.c2 = c2;
         this.vmax = vmax;
         this.maxIterations = maxIterations;
+        this.numParticles = population.length/2;
         
-        this.particles = population;
+        particles = new Particle[numParticles];
+        pbest = new Particle[numParticles];
+        
+        System.arraycopy(population, 0, particles, 0, numParticles);
+        System.arraycopy(population, numParticles, pbest, 0, numParticles);
         
         topology.setPopulation(particles);
     }
@@ -120,14 +121,16 @@ public abstract class PSO
         for (int i = 1; i <= maxIterations; i++)
         {
             // update each particle's position
-            for (int j = 0; j < particles.length; j++)
+            for (int j = 0; j < numParticles; j++)
             {
-                particles[j].update(w, c1, c2, vmax, topology.getBest(j));
+                particles[j].update(w, c1, c2, vmax, pbest[j].getValues(),
+                        topology.getBest(j));
             }
             
-            particleUpdate();
-            
             updateFitness();
+            updatePersonalBest();
+            
+            topology.update();
             
             serializePopulation("./pop/"+System.currentTimeMillis()+".pop");
             
@@ -135,33 +138,31 @@ public abstract class PSO
                 break;
         }
         
-        Particle best = getBestParticle();
-        finalise(best.getBestValues(), best.getBestFitness());
+        finalise();
         
         if (writer != null)
             writer.flush();
     }
     
-    public Particle getCurrentBestParticle()
+    public Particle getBestBest()
     {
-        int best = 0;
-        for (int i = 0; i < particles.length; i++)
-        {
-            if (particles[i].getFitness() > particles[best].getFitness())
-                best = i;
-        }
-        return particles[best];
+        return getBestParticle(particles);
     }
     
-    public Particle getBestParticle()
+    public Particle getCurrentBest()
+    {
+        return getBestParticle(pbest);
+    }
+    
+    public static Particle getBestParticle(Particle[] list)
     {
         int best = 0;
-        for (int i = 0; i < particles.length; i++)
+        for (int i = 0; i < list.length; i++)
         {
-            if (particles[i].getBestFitness() > particles[best].getBestFitness())
+            if (list[i].getFitness() > list[best].getFitness())
                 best = i;
         }
-        return particles[best];
+        return list[best];
     }
 
     /**
@@ -184,13 +185,15 @@ public abstract class PSO
             
             try
             {
-            if (!file.exists())
-            {
-                file.createNewFile();
-            }
-            
-            for (Particle p :particles)
-                oos.writeObject(p);
+                if (!file.exists())
+                {
+                    file.createNewFile();
+                }
+
+                for (Particle p :particles)
+                    oos.writeObject(p);
+                for (Particle p :pbest)
+                    oos.writeObject(p);
             }
             finally
             {

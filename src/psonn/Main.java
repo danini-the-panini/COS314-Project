@@ -73,17 +73,19 @@ public class Main
                 Particle[] particles
                         = PSO.deserializePopulation(file);
                 
+                // find best particle
                 Particle best = particles[0];
-                double bestFitness = best.getBestFitness();
+                double bestFitness = best.getFitness();
                 for (int i = 1; i < particles.length; i++)
                 {
-                    if (particles[i].getBestFitness() > bestFitness)
+                    if (particles[i].getFitness() > bestFitness)
                     {
                         best = particles[i];
-                        bestFitness = best.getBestFitness();
+                        bestFitness = best.getFitness();
                     }
                 }
-                nn.setWeights(best.getBestValues());
+                
+                nn.setWeights(best.getValues());
                 TestBot.play(newBoard(),new NNEval(nn));
             }
             catch (IOException ex)

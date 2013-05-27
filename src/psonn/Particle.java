@@ -2,6 +2,7 @@ package psonn;
 
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Represents a particle or entity in a Particle Swarm Optimisation.
@@ -11,8 +12,6 @@ public class Particle implements Serializable
 {
     private double[] values;
     private double fitness;
-    private double[] pbest;
-    private double pbestFitness;
     
     private double[] velocity;
 
@@ -37,10 +36,14 @@ public class Particle implements Serializable
             velocity[i] = 0; // initialize velocities to zero.
         }
         
-        pbest = new double[values.length];
-        System.arraycopy(values, 0, pbest, 0, values.length);
         fitness = Double.NEGATIVE_INFINITY;
-        pbestFitness = fitness;
+    }
+    
+    public Particle(final Particle other)
+    {
+        this.values = Arrays.copyOf(other.values, other.values.length);
+        this.velocity = Arrays.copyOf(other.velocity, other.velocity.length);
+        this.fitness = other.fitness;
     }
     
     /**
@@ -51,7 +54,7 @@ public class Particle implements Serializable
      * @param gbest Global/Local best.
      */
     public void update(double w, double c1, double c2, double vmax,
-            double[] gbest)
+            double[] pbest, double[] gbest)
     {
         // r1, r2 ~U(0,1)
         double r1 = Math.random();
@@ -81,34 +84,15 @@ public class Particle implements Serializable
     {
         return fitness;
     }
-
-    public double getBestFitness()
-    {
-        return pbestFitness;
-    }
-    
-    public double[] getBestValues()
-    {
-        return pbest;
-    }
     
     public int getNumDimensions()
     {
         return values.length;
     }
     
-    /**
-     * Update the particle's personal best.
-     * @param fitness
-     */
-    public void updateFitness(double fitness)
+    public void setFitness(double fitness)
     {
         this.fitness = fitness;
-        if (fitness > pbestFitness)
-        {
-            System.arraycopy(values, 0, pbest, 0, values.length);
-            pbestFitness = fitness;
-        }
     }
     
     // subtract two vectors

@@ -13,6 +13,8 @@ import java.util.concurrent.Future;
  */
 public class GameMaster
 {
+    public static final double WIN_REWARD = 1.0;
+    public static final double LOSS_PUNISHMENT = 2.0;
     private Random random = new Random();
     
     private Player[] pool;
@@ -64,13 +66,13 @@ public class GameMaster
         
         for (int i = 0; i < numGames; i++)
         {
-            games.add(executor.submit(new GameExecution(board.sheep(), pid, comp[i], 0)));
-            games.add(executor.submit(new GameExecution(board.sheep(), comp[i], pid, 1)));
+            games.add(executor.submit(new GameExecution(board.sheep(), pid, comp[i])));
+            //games.add(executor.submit(new GameExecution(board.sheep(), comp[i], pid)));
         }
     }
     
     /**
-     * Returns the loss-win ratio of each player.
+     * Returns the results from the tournament
      * @param results 
      */
     public void getResults(double[] results)
@@ -84,27 +86,28 @@ public class GameMaster
             {
                 Game game = games.remove().get();
 
-                results[game.id] += game.result;
+                if (game.result != 2)
+                {
+                    results[game.result] += WIN_REWARD;
+                    results[1-game.result] -= LOSS_PUNISHMENT;
+                }
             }
             catch (Exception e)
             {
                 e.printStackTrace(System.err);
             }
         }
-        
-        
-        for (int i = 0; i < results.length; i++)
-            results[i] /= (double)(numGames*2);
     }
     
     private class Game
     {
-        int id;
+        int p1, p2;
         int result;
 
-        public Game(int id, int result)
+        public Game(int p1, int p2, int result)
         {
-            this.id = id;
+            this.p1 = p1;
+            this.p2 = p2;
             this.result = result;
         }
     }
@@ -114,16 +117,14 @@ public class GameMaster
         int[] pid;
         Player[] players;
         Board board;
-        int important;
 
-        public GameExecution(Board board, int a, int b, int important) {
+        public GameExecution(Board board, int a, int b) {
             this.pid = new int[]{ a, b };
             players = new Player[]{
                 pool[pid[0]],
                 pool[pid[1]],
             };
             this.board = board;
-            this.important = important;
         }
 
         @Override
@@ -138,7 +139,7 @@ public class GameMaster
                 board.applyMove(players[me].move(board, me));
             }
 
-            return new Game(pid[important], status == important ? 0 : 1); // 1 for win, 0 for loss
+            return new Game(pid[0],pid[1],status);
         }
     }
     
