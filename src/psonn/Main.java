@@ -26,8 +26,8 @@ public class Main
     public static final int UPPER_BOUND = 1;
     public static final int VMAX = 5;
     public static final double W = 0.72;
-    public static final Class boardType = TTTBoard.class;
-    public static final int MAX_DEPTH = 5;
+    public static final Class boardType = MancalaBoard.class;
+    public static final int MAX_DEPTH = 1;
     
     public static void printUsage()
     {

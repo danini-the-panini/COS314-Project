@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package psonn.game;
 
 import gamestuff.AlphaBetaTree;
@@ -53,17 +49,24 @@ public class TestBot
                     System.out.println("INVALID MOVE");
                     System.out.print("Enter a move: ");
                 }
+                clear();
             }
-            else // bot's turn
+            else // computer's turn
             {
                 System.out.print("Computer is thinking...");
-                b.applyMove(abtree.evaluate(b.makeCopy(), 9));
-                System.out.println("done!");
+		int[] move = abtree.evaluate(b.makeCopy(), 9);
+                clear();
+                System.out.print("Computer moves");
+		for (int i = 0; i < move.length; i++)
+		{
+			System.out.printf(", %d", move[i]);
+		}
+                System.out.println(".");
                 System.out.println();
+                b.applyMove(move);
             }
             
             x = b.getBoard();
-            clear();
             b.print(System.out);
             System.out.println();
             int status;

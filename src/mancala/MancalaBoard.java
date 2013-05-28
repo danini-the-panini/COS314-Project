@@ -122,7 +122,7 @@ public class MancalaBoard extends Board
     }
     
     // tells whether or not the given pit belongs to currentPlayer
-    private boolean yours(int pit)
+    public boolean yours(int pit)
     {
         pit -= currentPlayer*HALF;
         return pit >= 0 && pit < HALF;
@@ -161,7 +161,7 @@ public class MancalaBoard extends Board
         
             // if finish point is on player's side
             // and is not his/her mancala
-            // and only has one seed in it
+            // and only has one seed in it (seed just played)
             if (yours(finish) && finish != mancala && board[finish] == 1)
             {
                 int opp = opposite(finish);
@@ -196,6 +196,12 @@ public class MancalaBoard extends Board
             else if (board[M] < board[M1])
                 winner = 1;
             else winner = DRAW; // draw (possible?)
+            
+            // clear board
+            for (int i = 0; i < M; i++)
+            {
+                board[i] = board[i+HALF] = 0;
+            }
         }
     }
 
