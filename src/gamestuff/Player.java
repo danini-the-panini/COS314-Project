@@ -5,6 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import psonn.Function;
+import psonn.Main;
+import psonn.NeuralNetwork;
+import psonn.PSO;
+import psonn.Particle;
+import psonn.game.NNEval;
 import tttstuff.TTTEval;
 
 /**
@@ -23,9 +29,40 @@ public abstract class Player
     
     public static void main(String[] args)
     {
-        ABPlayer player = new ABPlayer(9, new TTTEval());
+        Particle[] particles = Main.loadParticles();
         
-        playNetworkGame(player, "Blind, Deaf Monkey");
+        String name = "Blind, Deaf Monkey";
+        EvaluationFunc eval;
+        
+        if (particles == null)
+            eval = new TTTEval();
+        else
+        {
+            name = "Prometheus";
+            NeuralNetwork nn = new NeuralNetwork(new TTTBoard().getNumInputs(),
+                    Main.NUM_HIDDEN_UNITS, 1, new Function.Sigmoid());
+            nn.setWeights(PSO.getBest(particles).getValues());
+            eval = new NNEval(nn);
+        }
+        
+        switch(playNetworkGame(new ABPlayer(9, eval), name))
+        {
+            case WIN:
+                System.out.println(name + " wins!");
+                break;
+            case LOSS:
+                System.out.println(name + " loses...");
+                break;
+            case INVALID:
+                System.out.println(name + " made an invalid move.");
+                break;
+            case DRAW:
+                System.out.println("Game was a draw.");
+                break;
+            default:
+                System.out.println("AN ERROR OCCURED!");
+                break;
+        }
     }
     
     public static int playNetworkGame(Player player, String name)

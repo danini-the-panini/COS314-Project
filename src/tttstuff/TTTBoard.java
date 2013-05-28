@@ -97,8 +97,7 @@ public class TTTBoard extends Board
     private int getValue(int i, int forwhom)
     {
         int value = board[i];
-        if (forwhom == 1)
-            if (value != 2) value = 1-value;
+        if (forwhom == 1 && value != E) return 1-value;
         return value;
     }
 

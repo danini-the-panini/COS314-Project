@@ -26,8 +26,9 @@ public class Main
     public static final int UPPER_BOUND = 1;
     public static final int VMAX = 5;
     public static final double W = 0.72;
-    public static final Class boardType = MancalaBoard.class;
-    public static final int MAX_DEPTH = 1;
+    public static final Class boardType = TTTBoard.class;
+    public static final int MAX_DEPTH = 5;
+    
     public static void printUsage()
     {
         System.out.println("Please supply valid command line arguments:");
@@ -51,76 +52,85 @@ public class Main
         return null;
     }
     
+    public static Particle[] loadParticles()
+    {
+        JFileChooser chooser = new JFileChooser(".");
+        chooser.showOpenDialog(null);
+        try
+        {
+            File file = chooser.getSelectedFile();
+            if (file == null)
+            {
+                System.out.println("No File chosen.");
+                return null;
+            }
+
+            return PSO.deserializePopulation(file);
+        }
+        catch (IOException ex)
+        {
+            System.out.println("Error reading bot: " + ex.getMessage());
+        }
+        return null;
+    }
+    
     public static void main(String[] args)
     {
+        
+        Board exampleBoard = newBoard();
+        
         if (args.length < 1) printUsage();
         else if ("play".equalsIgnoreCase(args[0]))
         {
-            Board example = newBoard();
             
-            NeuralNetwork nn = new NeuralNetwork(example.getNumInputs(),
+            NeuralNetwork nn = new NeuralNetwork(exampleBoard.getNumInputs(),
                     NUM_HIDDEN_UNITS, 1, new Function.Sigmoid());
-            JFileChooser chooser = new JFileChooser(".");
-            chooser.showOpenDialog(null);
-            try
+                
+            Particle[] particles = loadParticles();
+            
+            if (particles == null)
             {
-                File file = chooser.getSelectedFile();
-                if (file == null)
-                {
-                    System.out.println("No File chosen.");
-                    System.exit(0);
-                }
-                
-                double[] values = PSO.getBest(PSO.deserializePopulation(file))
-                        .getValues();
-                
-                nn.setWeights(values);
-                
-                TestBot.play(newBoard(),new NNEval(nn));
+                System.exit(1);
             }
-            catch (IOException ex)
+            else
             {
-                System.out.println("Error reading bot: " + ex.getMessage());
+                double[] values = PSO.getBest(particles).getValues();
+
+                nn.setWeights(values);
+
+                TestBot.play(exampleBoard,new NNEval(nn));
             }
         }
         else if ("train".equalsIgnoreCase(args[0]))
         {
+            GameNNPSO pso = null;
+            
             if (args.length < 2) printUsage();
             else if ("scratch".equalsIgnoreCase(args[1]))
             {
-                GameNNPSO pso = new GameNNPSO(newBoard(), MAX_DEPTH,
+                pso = new GameNNPSO(exampleBoard, MAX_DEPTH,
                         NUM_HIDDEN_UNITS, new Function.Sigmoid(),
                         NUM_ITERATIONS, new Topology.Ring(2), W, C1, C2, VMAX,
                         NUM_PARTICLES, LOWER_BOUND, UPPER_BOUND);
 
-                pso.optimise();
             }
             else if ("continue".equalsIgnoreCase(args[1]))
             {
-                JFileChooser chooser = new JFileChooser(".");
-                chooser.showOpenDialog(null);
-                try
-                {
-                    File file = chooser.getSelectedFile();
-                    if (file == null)
-                    {
-                        System.out.println("No File chosen.");
-                        System.exit(0);
-                    }
+                Particle[] particles = loadParticles();
                     
-                    GameNNPSO pso = new GameNNPSO(newBoard(), MAX_DEPTH,
+                if (particles != null)
+                {
+                    pso = new GameNNPSO(exampleBoard, MAX_DEPTH,
                             NUM_HIDDEN_UNITS, new Function.Sigmoid(),
                             NUM_ITERATIONS, new Topology.Ring(2), W, C1, C2,
-                            VMAX, PSO.deserializePopulation(file));
+                            VMAX, particles);
+                }
 
-                    pso.optimise();
-                }
-                catch (IOException ex)
-                {
-                    System.out.println("Error reading bot: " + ex.getMessage());
-                }
             }
             else printUsage();
+            
+            if (pso != null)
+                pso.optimise();
         }
         else printUsage();
     }
