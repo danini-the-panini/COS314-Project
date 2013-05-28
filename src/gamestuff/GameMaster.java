@@ -69,7 +69,7 @@ public class GameMaster
         
         for (int i = 0; i < numGames; i++)
         {
-            games.add(executor.submit(new GameExecution(board.sheep(), pid, comp[i])));
+            games.add(executor.submit(new GameExecution(board.makeCopy(), pid, comp[i])));
             //games.add(executor.submit(new GameExecution(board.sheep(), comp[i], pid)));
         }
     }

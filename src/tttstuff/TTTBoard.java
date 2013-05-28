@@ -103,7 +103,7 @@ public class TTTBoard extends Board
     }
 
     @Override
-    public Board sheep()
+    public Board makeCopy()
     {
         TTTBoard nboard = new TTTBoard();
         

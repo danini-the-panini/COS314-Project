@@ -40,10 +40,10 @@ public class AlphaBetaTree
         Board nb;
         for (int i = 0; i < moves.length; i++)
         {
-            nb = board.sheep();
+            nb = board.makeCopy();
             nb.applyMove(moves[i]);
 
-            cvalue = alphaBeta(value, Double.POSITIVE_INFINITY, nb, 1, maxDepth-1, player);
+            cvalue = alphaBeta(value, Double.POSITIVE_INFINITY, nb, 1, maxDepth, player);
 
             if (cvalue > value)
             {
@@ -84,7 +84,7 @@ public class AlphaBetaTree
         {
             for (int i = 0; i < moves.length; i++)
             {
-                nb = board.sheep();
+                nb = board.makeCopy();
                 nb.applyMove(moves[i]);
                 alpha = Math.max(alpha, alphaBeta(alpha, beta, nb, depth+1, maxDepth, player));
                 if (beta <= alpha) {
@@ -99,7 +99,7 @@ public class AlphaBetaTree
         // min
         for (int i = 0; i < moves.length; i++)
         {
-            nb = board.sheep();
+            nb = board.makeCopy();
             nb.applyMove(moves[i]);
             beta = Math.min(beta, alphaBeta(alpha, beta, nb, depth+1, maxDepth, player));
             

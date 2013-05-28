@@ -20,7 +20,7 @@ public class ABPlayer extends Player
     @Override
     public int[] move(Board board, int playerNum)
     {
-        return abtree.evaluate(board.sheep(), maxDepth);
+        return abtree.evaluate(board.makeCopy(), maxDepth);
     }
     
 }

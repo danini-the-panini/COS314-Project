@@ -43,7 +43,7 @@ public abstract class Board
         System.arraycopy(board, 0, this.board, 0, board.length);
     }
     
-    public abstract Board sheep();
+    public abstract Board makeCopy();
     
     public abstract int getStatus();
     

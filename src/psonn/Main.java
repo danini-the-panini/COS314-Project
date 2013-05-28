@@ -27,7 +27,7 @@ public class Main
     public static final int VMAX = 5;
     public static final double W = 0.72;
     public static final Class boardType = MancalaBoard.class;
-    public static final int MAX_DEPTH = 5;
+    public static final int MAX_DEPTH = 1;
     public static void printUsage()
     {
         System.out.println("Please supply valid command line arguments:");
@@ -58,7 +58,8 @@ public class Main
         {
             Board example = newBoard();
             
-            NeuralNetwork nn = new NeuralNetwork(example.getNumInputs(), NUM_HIDDEN_UNITS, 1, new Function.Sigmoid());
+            NeuralNetwork nn = new NeuralNetwork(example.getNumInputs(),
+                    NUM_HIDDEN_UNITS, 1, new Function.Sigmoid());
             JFileChooser chooser = new JFileChooser(".");
             chooser.showOpenDialog(null);
             try
@@ -70,22 +71,11 @@ public class Main
                     System.exit(0);
                 }
                 
-                Particle[] particles
-                        = PSO.deserializePopulation(file);
+                double[] values = PSO.getBest(PSO.deserializePopulation(file))
+                        .getValues();
                 
-                // find best particle
-                Particle best = particles[0];
-                double bestFitness = best.getFitness();
-                for (int i = 1; i < particles.length; i++)
-                {
-                    if (particles[i].getFitness() > bestFitness)
-                    {
-                        best = particles[i];
-                        bestFitness = best.getFitness();
-                    }
-                }
+                nn.setWeights(values);
                 
-                nn.setWeights(best.getValues());
                 TestBot.play(newBoard(),new NNEval(nn));
             }
             catch (IOException ex)
@@ -118,15 +108,10 @@ public class Main
                         System.exit(0);
                     }
                     
-                    Particle[] particles
-                            = PSO.deserializePopulation(file);
-                    
-                    System.out.println("null? " + (particles == null));
-                    
                     GameNNPSO pso = new GameNNPSO(newBoard(), MAX_DEPTH,
                             NUM_HIDDEN_UNITS, new Function.Sigmoid(),
                             NUM_ITERATIONS, new Topology.Ring(2), W, C1, C2,
-                            VMAX, particles);
+                            VMAX, PSO.deserializePopulation(file));
 
                     pso.optimise();
                 }

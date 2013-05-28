@@ -16,6 +16,13 @@ import java.util.Scanner;
  */
 public class TestBot
 {
+    public static String ESC = "\033[";
+    
+    public static void clear()
+    {
+        System.out.print(ESC+"2J");
+    }
+    
     public static void play(Board b, EvaluationFunc bot)
     {
         AlphaBetaTree abtree = new AlphaBetaTree(bot);
@@ -25,6 +32,7 @@ public class TestBot
         
         int you = r.nextInt(2);
         
+        clear();
         System.out.println("YOU ARE PLAYER " + you);
         System.out.println();
         
@@ -49,18 +57,20 @@ public class TestBot
             else // bot's turn
             {
                 System.out.print("Computer is thinking...");
-                b.applyMove(abtree.evaluate(b.sheep(), 9));
+                b.applyMove(abtree.evaluate(b.makeCopy(), 9));
                 System.out.println("done!");
                 System.out.println();
             }
             
             x = b.getBoard();
+            clear();
             b.print(System.out);
             System.out.println();
             int status;
             if ((status = b.getStatus()) != -1)
             {       
-                    System.out.println();
+                clear();
+                System.out.println();
                     System.out.println("      +------------------+");
                 if (status == you)
                     System.out.println("      | <<< You  Win >>> |");

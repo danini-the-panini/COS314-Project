@@ -1,12 +1,11 @@
 package gamestuff;
 
-import gamestuff.Board;
 import tttstuff.TTTBoard;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.concurrent.atomic.AtomicInteger;
+import tttstuff.TTTEval;
 
 /**
  *
@@ -22,7 +21,14 @@ public abstract class Player
     
     public static final int WIN = 0, LOSS = 1, INVALID = 2, DRAW = 3, ERROR = 99;
     
-    public static int playNetworkGame(Player player)
+    public static void main(String[] args)
+    {
+        ABPlayer player = new ABPlayer(9, new TTTEval());
+        
+        playNetworkGame(player, "Blind, Deaf Monkey");
+    }
+    
+    public static int playNetworkGame(Player player, String name)
     {
         int result = -1;
         
@@ -36,7 +42,7 @@ public abstract class Player
             OutputStream out = socket.getOutputStream();
 
             //Write name
-            out.write(("Blind, Deaf Monkey\n").getBytes());
+            out.write((name+"\n").getBytes());
             TTTBoard b = new TTTBoard();
             int[] board = new int[9];
             for (int k = 0; k < 9; k++)
@@ -83,33 +89,6 @@ public abstract class Player
         return result;
     }
     
-    private static AtomicInteger[] results;
-    
-    public static void setupNetworkGames(int numGames)
-    {
-        results = new AtomicInteger[numGames];
-        for (int i = 0; i < numGames; i++)
-            results[i] = new AtomicInteger(-1);
-    }
-    
-    public static void spawnNetworkGame(final Player player, final int id)
-    {
-        new Thread(new Runnable() {
-
-            @Override
-            public void run()
-            {
-                results[id].set(playNetworkGame(player));
-            }
-        }).start();
-    }
-    
-    public static int getNetworkGameResult(int id)
-    {
-        return results[id].get();
-    }
-    
-    // TODO: this /could/ be generic...
     public static int faceoff(Board board, final Player[] players)
     {
         int status;

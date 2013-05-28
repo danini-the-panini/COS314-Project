@@ -36,13 +36,12 @@ public class MancalaBoard extends Board
     public int[][] getMoves()
     {
         int o = currentPlayer*HALF; // player offset
-        int mancala = M+o; // player's mancala
         
         ArrayList<int[]> moves = new ArrayList<int[]>();
         for (int i = 0; i < M; i++)
         {
-            int pit = i+o;
-            if (board[pit] > 0)
+            int currentMove = i+o;
+            if (board[currentMove] > 0)
             {
                 
                 // start with i (which between 0 and 5) and add the number of
@@ -64,62 +63,53 @@ public class MancalaBoard extends Board
                 //  Figure 1:   Board indices.
                 //              Mancala's are 6 and 13
                 
-                if (i + board[pit]%(FULL-1) == M)
+                if (i + board[currentMove]%(FULL-1) == M)
                 {
                     // case when player can go again
                     // recursively get more moves
                     
-                    MancalaBoard b = (MancalaBoard)this.sheep(); // copy board
-                    b.applyHalfMove(pit); // apply move to copied board
-                    if (b.currentPlayer != this.currentPlayer)
-                    {
-                        System.err.println(">.<");
-                    }
-                    b.gameCheck(); // check if move did not cause a win
-                    if (b.winner == -1)
+                    // copy board
+                    MancalaBoard recursiveBoard = (MancalaBoard)this.makeCopy(); 
+                    
+                    // apply move to copied board
+                    recursiveBoard.applyOneMove(currentMove);
+                    
+                    // check if move did not cause a win
+                    recursiveBoard.gameCheck();
+                    if (recursiveBoard.winner == -1)
                     {
                         // get future moves
-                        int[][] m1 = b.getMoves();
-                        for (int j = 0; j < m1.length; j++)
+                        int[][] futureMoves = recursiveBoard.getMoves(); // recursive call
+                        for (int j = 0; j < futureMoves.length; j++)
                         {
                             // prepend future move with current move
-                            int[] m2 = new int[m1[j].length+1];
-                            System.arraycopy(m1[j],0,m2,1,m1[j].length);
-                            m2[0] = pit;
                             
-                            moves.add(m2);
+                            int[] newMove = new int[futureMoves[j].length+1];
+                            
+                            System.arraycopy(
+                                    futureMoves[j], 0,
+                                    newMove, 1,
+                                    futureMoves[j].length);
+                            
+                            newMove[0] = currentMove;
+                            
+                            moves.add(newMove);
                         }
                     }
-                    else // anchor case when turn causes a win
+                    else 
                     {
-                        moves.add(new int[]{pit});
+                        // anchor case when turn causes a win
+                        
+                        moves.add(new int[]{currentMove});
                     }
                 }
                 else
                 {
-                    MancalaBoard b = (MancalaBoard)this.sheep(); // copy board
-                    b.applyHalfMove(pit); // apply move to copied board
-                    if (b.currentPlayer == this.currentPlayer)
-                    {
-                        //System.err.println("D:<");
-                        System.out.println("<<<<<<<<<<");
-                        this.print(System.out);
-                        System.out.println("==========");
-                        b.print(System.out);
-                        System.out.println(">>>>>>>>>>");
-                    }
-                    
                     // anchor case where only one move can be made
                     
-                    moves.add(new int[]{pit});
+                    moves.add(new int[]{currentMove});
                 }
             }
-        }
-        
-        if (moves.isEmpty() && winner == -1)
-        {
-            System.err.println("We have a problem...");
-            print(System.out);
         }
         
         return moves.toArray(new int[0][]);
@@ -139,7 +129,7 @@ public class MancalaBoard extends Board
     }
     
     // apply a single move. i.e. perform the act of sowing from one pit
-    public boolean applyHalfMove(int pit)
+    public boolean applyOneMove(int pit)
     {
         int o = currentPlayer*HALF; // player offset
         int mancala = M+o; // player's mancala
@@ -214,7 +204,7 @@ public class MancalaBoard extends Board
     {
         for (int i = 0; i < move.length; i++)
         {
-            if (!applyHalfMove(move[i]))
+            if (!applyOneMove(move[i]))
                 return false;
         }
         gameCheck();
@@ -222,7 +212,7 @@ public class MancalaBoard extends Board
     }
 
     @Override
-    public Board sheep()
+    public Board makeCopy()
     {
         MancalaBoard nboard = new MancalaBoard();
         
