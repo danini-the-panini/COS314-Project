@@ -27,24 +27,24 @@ public class GameNNPSO extends PSO
     private GameMaster gameMaster;
     
     private Board board;
-    public static final int NUM_GAMES = 5;
     
     private int numPlayers;
 
-    public GameNNPSO(Board board, int maxDepth, int numHiddenUnits,
+    public GameNNPSO(Board board, int maxDepth, int numGames, int numHiddenUnits,
             Function activationFunction, int maxIterations, Topology topology,
             double w, double c1, double c2, double vmax, int numParticles,
-            double lowerBound, double upperBound, String outputFile)
+            double lowerBound, double upperBound,  String outputFile)
     {
         super(NeuralNetwork.getNumWeights(board.getNumInputs(), numHiddenUnits, 1),
                 maxIterations, topology, w, c1, c2, vmax, numParticles, lowerBound, upperBound, outputFile);
         
         this.board = board;
         
-        init(board.getNumInputs(), numHiddenUnits, activationFunction, maxDepth);
+        init(board.getNumInputs(), numHiddenUnits, activationFunction,
+                maxDepth, numGames);
     }
 
-    public GameNNPSO(Board board, int maxDepth, int numHiddenUnits, Function activationFunction,
+    public GameNNPSO(Board board, int maxDepth, int numGames, int numHiddenUnits, Function activationFunction,
             int maxIterations, Topology topology, double w, double c1,
             double c2, double vmax, Particle[] population, String outputFile)
     {
@@ -52,10 +52,12 @@ public class GameNNPSO extends PSO
         
         this.board = board;
         
-        init(board.getNumInputs(),numHiddenUnits, activationFunction, maxDepth);
+        init(board.getNumInputs(),numHiddenUnits, activationFunction,
+                maxDepth, numGames);
     }
     
-    private void init(int numInputs, int numHiddenUnits, Function activationFunction, int maxDepth)
+    private void init(int numInputs, int numHiddenUnits,
+            Function activationFunction, int maxDepth, int numGames)
     {
         numPlayers = 2*numParticles;
         fitnesses = new double[numPlayers];
@@ -72,7 +74,7 @@ public class GameNNPSO extends PSO
             players[i] = new ABPlayer(maxDepth, new NNEval(nn[i]));
         }
         
-        gameMaster = new GameMaster(players, board, NUM_GAMES);
+        gameMaster = new GameMaster(players, board, numGames);
         
         Particle p = getBest(pbest);
         

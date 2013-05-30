@@ -31,6 +31,7 @@ public abstract class PSO
     protected PrintWriter writer = null;
     
     private String outputFile;
+    private Object metaData = null;
     
     // gets called to update particle fitnesses
     protected abstract void updateFitness();
@@ -167,6 +168,15 @@ public abstract class PSO
     {
         this.writer = writer;
     }
+
+    /**
+     * Sets the additional data to be written to the population file when serialised.
+     * @param metaData 
+     */
+    public void setMetaData(Object metaData)
+    {
+        this.metaData = metaData;
+    }
     
     public void serializePopulation(String filename)
     {
@@ -183,6 +193,9 @@ public abstract class PSO
                 {
                     file.createNewFile();
                 }
+                
+                if (metaData != null)
+                    oos.writeObject(metaData);
 
                 for (Particle p :particles)
                     oos.writeObject(p);
@@ -201,39 +214,5 @@ public abstract class PSO
         
     }
     
-    public static Particle[] deserializePopulation(File file)
-            throws IOException
-    {
-        FileInputStream fis = new FileInputStream(file);
-        ObjectInputStream ois = new ObjectInputStream(fis);
-        ArrayList<Particle> list = new ArrayList<Particle>();
-        try
-        {
-            try {
-                while (true)
-                {
-                    try
-                    {
-                        list.add((Particle)ois.readObject());
-                    }
-                    catch (EOFException eof)
-                    {
-                        break;
-                    }
-                }
-            } catch (ClassNotFoundException ex) {
-                throw new IOException(ex.getMessage());
-            }
-        }
-        finally
-        {
-            ois.close();
-        }
-        
-        if (list.isEmpty())
-            return null;
-        
-        return list.toArray(new Particle[0]);
-        
-    }
+    
 }

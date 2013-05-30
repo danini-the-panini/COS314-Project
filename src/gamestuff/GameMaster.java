@@ -63,14 +63,35 @@ public class GameMaster
         //Executors.newSingleThreadExecutor();
     }
     
+    /**
+     * Initiate the playing of games between a player in the pool and numGames
+     * other opponents selected from the pool.
+     * @param pid The player ID of the player to play games with.
+     */
     public void playSomeGames(int pid)
     {
+        // sample random opponents
         int[] comp = sample(numGames, pid);
         
         for (int i = 0; i < numGames; i++)
         {
             games.add(executor.submit(new GameExecution(board.makeCopy(), pid, comp[i])));
             //games.add(executor.submit(new GameExecution(board.sheep(), comp[i], pid)));
+        }
+    }
+    
+    /**
+     * Play numGames games between player a and b, randomly switching starting player.
+     * @param a Player 1
+     * @param b Player 2
+     */
+    public void playSomeGames(int a, int b)
+    {
+        for (int i = 0; i < numGames; i++)
+        {
+            boolean sw = random.nextBoolean();
+            games.add(executor.submit(new GameExecution(board.makeCopy(),
+                    sw?a:b, sw?b:a)));
         }
     }
     
@@ -100,6 +121,31 @@ public class GameMaster
                 e.printStackTrace(System.err);
             }
         }
+    }
+    
+    public double getWinRatio(int pid)
+    {
+        double wins = 0;
+        
+        while (!games.isEmpty())
+        {
+            try
+            {
+                Game game = games.remove().get();
+
+                if (game != DRAW)
+                {
+                    if (game.winner == pid) wins++;
+                }
+                else wins += 0.5;
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace(System.err);
+            }
+        }
+        
+        return wins/numGames;
     }
     
     private static class Game

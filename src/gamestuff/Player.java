@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import project.Main;
+import project.Population;
 import psonn.Function;
-import psonn.Main;
 import psonn.NeuralNetwork;
 import psonn.PSO;
 import psonn.Particle;
@@ -29,23 +30,25 @@ public abstract class Player
     
     public static void main(String[] args)
     {
-        Particle[] particles = Main.loadParticles(args[0]);
+        Population pop = Main.loadParticles(args[0]);
         
         String name = "Blind, Deaf Monkey";
         EvaluationFunc eval;
+        int depth = 9;
         
-        if (particles == null)
+        if (pop == null)
             eval = new TTTEval();
         else
         {
             name = "Prometheus";
             NeuralNetwork nn = new NeuralNetwork(new TTTBoard().getNumInputs(),
-                    Main.NUM_HIDDEN_UNITS, 1, new Function.Sigmoid());
-            nn.setWeights(PSO.getBest(particles).getValues());
+                    pop.params.numHiddenUnits, 1, new Function.Sigmoid());
+            nn.setWeights(PSO.getBest(pop.particles).getValues());
             eval = new NNEval(nn);
+            depth = pop.params.plyDepth;
         }
         
-        switch(playNetworkGame(new ABPlayer(9, eval), name))
+        switch(playNetworkGame(new ABPlayer(depth, eval), name))
         {
             case WIN:
                 System.out.println(name + " wins!");
