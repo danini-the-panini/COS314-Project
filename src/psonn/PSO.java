@@ -10,7 +10,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 /**
@@ -30,6 +29,8 @@ public abstract class PSO
     private Topology topology;
     
     protected PrintWriter writer = null;
+    
+    private String outputFile;
     
     // gets called to update particle fitnesses
     protected abstract void updateFitness();
@@ -66,7 +67,7 @@ public abstract class PSO
      */
     public PSO(int dimensions, int maxIterations, Topology topology, double w,
             double c1, double c2, double vmax, int numParticles,
-            double lowerBound, double upperBound)
+            double lowerBound, double upperBound, String outputFile)
     {
         this.topology = topology;
         this.w = w;
@@ -75,6 +76,7 @@ public abstract class PSO
         this.vmax = vmax;
         this.maxIterations = maxIterations;
         this.numParticles = numParticles;
+        this.outputFile = outputFile;
         
         particles = new Particle[numParticles];
         pbest = new Particle[numParticles];
@@ -89,7 +91,7 @@ public abstract class PSO
     }
     
     public PSO(int maxIterations, Topology topology, double w,
-            double c1, double c2, double vmax, Particle[] population)
+            double c1, double c2, double vmax, Particle[] population, String outputFile)
     {
         this.topology = topology;
         this.w = w;
@@ -98,6 +100,7 @@ public abstract class PSO
         this.vmax = vmax;
         this.maxIterations = maxIterations;
         this.numParticles = population.length/2;
+        this.outputFile = outputFile;
         
         particles = new Particle[numParticles];
         pbest = new Particle[numParticles];
@@ -133,7 +136,7 @@ public abstract class PSO
             updatePersonalBest();
             topology.update();
             
-            serializePopulation("./pop/"+System.currentTimeMillis()+".pop");
+            serializePopulation(outputFile);
             
             if (!intermediate(i))
                 break;

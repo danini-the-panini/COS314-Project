@@ -34,10 +34,10 @@ public class GameNNPSO extends PSO
     public GameNNPSO(Board board, int maxDepth, int numHiddenUnits,
             Function activationFunction, int maxIterations, Topology topology,
             double w, double c1, double c2, double vmax, int numParticles,
-            double lowerBound, double upperBound)
+            double lowerBound, double upperBound, String outputFile)
     {
         super(NeuralNetwork.getNumWeights(board.getNumInputs(), numHiddenUnits, 1),
-                maxIterations, topology, w, c1, c2, vmax, numParticles, lowerBound, upperBound);
+                maxIterations, topology, w, c1, c2, vmax, numParticles, lowerBound, upperBound, outputFile);
         
         this.board = board;
         
@@ -46,9 +46,9 @@ public class GameNNPSO extends PSO
 
     public GameNNPSO(Board board, int maxDepth, int numHiddenUnits, Function activationFunction,
             int maxIterations, Topology topology, double w, double c1,
-            double c2, double vmax, Particle[] population)
+            double c2, double vmax, Particle[] population, String outputFile)
     {
-        super(maxIterations, topology, w, c1, c2, vmax, population);
+        super(maxIterations, topology, w, c1, c2, vmax, population, outputFile);
         
         this.board = board;
         

@@ -16,7 +16,7 @@ public class TestBot
     
     public static void clear()
     {
-        System.out.print(ESC+"2J");
+        System.out.print(ESC+"2J\r");
     }
     
     public static void play(Board b, EvaluationFunc bot)
@@ -26,21 +26,23 @@ public class TestBot
         Random r = new Random();
         Scanner scan = new Scanner(System.in);
         
-        int you = r.nextInt(2);
+        boolean iStart = Math.random()<0.5;
+        
+        if (iStart)
+            b.nextPlayer();
         
         clear();
-        System.out.println("YOU ARE PLAYER " + you);
+        System.out.println((iStart ? "I" : "YOU") + " START!");
         System.out.println();
         
         boolean running = true;
         
-        int[] x = b.getBoard();
         b.print(System.out);
         System.out.println();
         
         while (running)
         {
-            if (b.getCurrentPlayer() == you) // human's turn
+            if (b.getCurrentPlayer() == 0) // human's turn
             {
                 System.out.print("Enter a move: ");
                 boolean valid;
@@ -66,16 +68,14 @@ public class TestBot
                 b.applyMove(move);
             }
             
-            x = b.getBoard();
             b.print(System.out);
             System.out.println();
             int status;
             if ((status = b.getStatus()) != -1)
             {       
-                clear();
                 System.out.println();
                     System.out.println("      +------------------+");
-                if (status == you)
+                if (status == 0)
                     System.out.println("      | <<< You  Win >>> |");
                 else if (status == 2)
                     System.out.println("      | game was a draw  |");

@@ -253,7 +253,8 @@ public class MancalaBoard extends Board
     @Override
     public void print(PrintStream out)
     {
-        out.println("             PLAYER 1");
+        out.println("           PLAYER 1");
+        out.println("          ----------");
         out.println("       12 11 10  9  8  7");
         out.println("+--+  +--+--+--+--+--+--+  +--+");
         out.printf( "|%2d|  ", board[M1]);
@@ -262,13 +263,14 @@ public class MancalaBoard extends Board
         out.println("|  |  |");
         out.println("|  |  +--+--+--+--+--+--+  |  |");
         out.print("|  |  ");
-        for (int i = 0; i < M; i++)
-            System.out.printf("|%2d",board[i]);
+            for (int i = 0; i < M; i++)
+                System.out.printf("|%2d",board[i]);
         out.printf("|  |%2d|", board[M]);
         out.println();
         out.println("+--+  +--+--+--+--+--+--+  +--+");
         out.println("        0  1  2  3  4  5");
-        out.println("            PLAYER 0");
+        out.println("          -----------");
+        out.println("           PLAYER 0");
     }
     
 }

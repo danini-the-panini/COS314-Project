@@ -29,7 +29,7 @@ public abstract class Player
     
     public static void main(String[] args)
     {
-        Particle[] particles = Main.loadParticles();
+        Particle[] particles = Main.loadParticles(args[0]);
         
         String name = "Blind, Deaf Monkey";
         EvaluationFunc eval;

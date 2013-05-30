@@ -4,6 +4,7 @@ import gamestuff.Board;
 import java.io.File;
 import psonn.game.NNEval;
 import java.io.IOException;
+import java.util.HashMap;
 import javax.swing.JFileChooser;
 import mancala.MancalaBoard;
 import psonn.game.GameNNPSO;
@@ -21,7 +22,7 @@ public class Main
     public static final double C2 = 1.4;
     public static final int LOWER_BOUND = -1;
     public static final int NUM_HIDDEN_UNITS = 3;
-    public static final int NUM_ITERATIONS = 1000;
+    public static final int NUM_ITERATIONS = 500;
     public static final int NUM_PARTICLES = 30;
     public static final int UPPER_BOUND = 1;
     public static final int VMAX = 5;
@@ -29,43 +30,23 @@ public class Main
     public static final Class boardType = MancalaBoard.class;
     public static final int MAX_DEPTH = 1;
     
-    public static void printUsage()
-    {
-        System.out.println("Please supply valid command line arguments:");
-        System.out.println("\tplay: play against a neural network. Asks user for file to load.");
-        System.out.println("\ttrain: train a neural network");
-        System.out.println("\t\ttrain scratch: train a neural network from a random starting point");
-        System.out.println("\t\ttrain continue: train an existing neural network. Asks user for folder to load.");
-        System.out.println("");
-        System.exit(-1);
-    }
-    
     public static Board newBoard()
     {
         try
         {
             return (Board) boardType.newInstance();
-        } catch (ReflectiveOperationException ex)
+        } catch (Exception ex)
         {
             ex.printStackTrace(System.err);
         }
         return null;
     }
     
-    public static Particle[] loadParticles()
+    public static Particle[] loadParticles(String filename)
     {
-        JFileChooser chooser = new JFileChooser(".");
-        chooser.showOpenDialog(null);
         try
         {
-            File file = chooser.getSelectedFile();
-            if (file == null)
-            {
-                System.out.println("No File chosen.");
-                return null;
-            }
-
-            return PSO.deserializePopulation(file);
+            return PSO.deserializePopulation(new File(filename));
         }
         catch (IOException ex)
         {
@@ -79,14 +60,39 @@ public class Main
         
         Board exampleBoard = newBoard();
         
-        if (args.length < 1) printUsage();
-        else if ("play".equalsIgnoreCase(args[0]))
+        String command = null, inputFile = null, outputFile = null;
+        String numItString = null;
+        
+        if (args.length > 0)
+            command = args[0];
+        
+        // collect command line flags
+        for (int i = 1; i < args.length-1; i+=2)
         {
+            if ("-f".equalsIgnoreCase(args[i]))
+                inputFile = args[i+1];
+            else if ("-o".equalsIgnoreCase(args[i]))
+                outputFile = args[i+1];
+            else if ("-i".equalsIgnoreCase(args[i]))
+                numItString = args[i+1];
+            else
+                System.out.println("Unrecognised flag: " + args[i]);
+        }
+        
+        if ("play".equalsIgnoreCase(command))
+        {
+            if (inputFile == null)
+            {
+                System.out.println("No input file specified. Please specify a file using the -f flag.");
+                System.exit(-1);
+            }
+            if (outputFile != null) System.out.println("Ignoring -o flag.");
+            if (numItString != null) System.out.println("Ignoring -i flag");
             
             NeuralNetwork nn = new NeuralNetwork(exampleBoard.getNumInputs(),
                     NUM_HIDDEN_UNITS, 1, new Function.Sigmoid());
                 
-            Particle[] particles = loadParticles();
+            Particle[] particles = loadParticles(inputFile);
             
             if (particles == null)
             {
@@ -101,38 +107,75 @@ public class Main
                 TestBot.play(exampleBoard,new NNEval(nn));
             }
         }
-        else if ("train".equalsIgnoreCase(args[0]))
+        else if ("train".equalsIgnoreCase(command))
         {
             GameNNPSO pso = null;
-            
-            if (args.length < 2) printUsage();
-            else if ("scratch".equalsIgnoreCase(args[1]))
+
+            int numIterations = NUM_ITERATIONS;
+            if (numItString != null)
             {
+                try
+                {
+                    numIterations = Integer.parseInt(numItString);
+                }
+                catch (NumberFormatException nfe)
+                {
+                    numIterations = -1;
+                }
+                if (numIterations < 1)
+                {
+                    System.out.println("Invalid number of iterations, using default. (" + NUM_ITERATIONS + ")");
+                    numIterations = NUM_ITERATIONS;
+                }
+            }
+            else
+            {
+                System.out.println("Using default number of iterations. (" + NUM_ITERATIONS + ")");
+            }
+            
+            if (inputFile == null)
+            {
+            
+                if (outputFile == null)
+                {
+                    System.out.println("Please specify an output file.");
+                    System.exit(-1);
+                }
+                
                 pso = new GameNNPSO(exampleBoard, MAX_DEPTH,
                         NUM_HIDDEN_UNITS, new Function.Sigmoid(),
-                        NUM_ITERATIONS, new Topology.Ring(2), W, C1, C2, VMAX,
-                        NUM_PARTICLES, LOWER_BOUND, UPPER_BOUND);
-
+                        numIterations, new Topology.Ring(2), W, C1, C2, VMAX,
+                        NUM_PARTICLES, LOWER_BOUND, UPPER_BOUND, outputFile);
             }
-            else if ("continue".equalsIgnoreCase(args[1]))
+            else
             {
-                Particle[] particles = loadParticles();
+                Particle[] particles = loadParticles(inputFile);
+                
+                if (outputFile == null)
+                {
+                    System.out.println("No output file specified, overwriting input file.");
+                    outputFile = inputFile;
+                }
                     
                 if (particles != null)
                 {
                     pso = new GameNNPSO(exampleBoard, MAX_DEPTH,
                             NUM_HIDDEN_UNITS, new Function.Sigmoid(),
-                            NUM_ITERATIONS, new Topology.Ring(2), W, C1, C2,
-                            VMAX, particles);
+                            numIterations, new Topology.Ring(2), W, C1, C2,
+                            VMAX, particles, outputFile);
                 }
 
             }
-            else printUsage();
             
             if (pso != null)
                 pso.optimise();
         }
-        else printUsage();
+        else
+        {
+            System.out.println("Please specify one of the following commands:");
+            System.out.println("\t1. play");
+            System.out.println("\t2. train");
+        }
     }
     
     
